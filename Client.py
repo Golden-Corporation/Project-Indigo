@@ -1,3 +1,4 @@
+
 import os
 import socket
 
@@ -28,14 +29,18 @@ def main():
     choice = input("Enter your choice: ")
 
     # Handle the user's choice
-    if choice == "1":
-        show_posts()
-    elif choice == "2":
-        send_dm()
-    elif choice == "3":
-        profile()
-    else:
-        print("Invalid choice")
+    while choice != "0":
+        if choice == "1":
+            show_posts()
+        elif choice == "2":
+            send_dm()
+        elif choice == "3":
+            profile()
+        else:
+            print("Invalid choice")
+
+        # Go back to the main menu
+        choice = input("Enter your choice: ")
 
 def show_posts():
     posts = get_posts()
