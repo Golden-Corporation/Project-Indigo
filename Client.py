@@ -1,6 +1,5 @@
-
+import random
 import os
-import socket
 
 def get_posts():
     posts = []
@@ -13,48 +12,87 @@ def post_message(message):
     with open("posts.txt", "a") as f:
         f.write(message + "\n")
 
-def send_dm(username, message):
+def send_dm(sender_number, recipient_number, message):
     with open("dms.txt", "a") as f:
-        f.write(f"{username}: {message}\n")
+        f.write(f"{sender_number}: {recipient_number}: {message}\n")
+
+def get_username(number):
+    with open("accounts.txt", "r") as f:
+        for line in f:
+            if number == line.split(":")[0]:
+                return line.split(":")[1]
+    return None
+
+def identification_page():
+    number = generate_number()
+
+    with open("identification.txt", "w") as f:
+        f.write(str(number))
+    print(f"Your identification number is: {number}")
+
+def generate_number():
+    return random.randint(0, 999)
 
 def main():
     print("Welcome to Project Indigo (Beta)")
 
-    # Create a sidebar
-    print("1. Posts")
-    print("2. DMs")
-    print("3. Profile")
+    # Create the file if it doesn't exist
+    if not os.path.exists("identification.txt"):
+        with open("identification.txt", "w") as f:
+            f.write("")
 
-    # Get the user's choice
-    choice = input("Enter your choice: ")
+    # Read the identification number from the file
+    with open("identification.txt", "r") as f:
+        number = f.read()
+
+    # Create the friends list
+    friends_list = []
 
     # Handle the user's choice
-    while choice != "0":
+    while True:
+        print("1. Posts")
+        print("2. Make a post")
+        print("3. DMs")
+        print("4. Receive DMs")
+        print("5. Identification")
+        print("6. Friends List")
+
+        # Get the user's choice
+        choice = input("Enter your choice: ")
+
         if choice == "1":
-            show_posts()
+            posts = get_posts()
+            for post in posts:
+                # Add the user's number to the post
+                post = f"{post} - User{post.split('-')[0]}"
+                print(post)
         elif choice == "2":
-            send_dm()
+            message = input("Enter your message: ")
+            post_message(message)
         elif choice == "3":
-            profile()
+            sender_number = input("Enter your number: ")
+            recipient_number = input("Enter the recipient's number: ")
+            message = input("Enter your message: ")
+            send_dm(sender_number, recipient_number, message)
+        elif choice == "4":
+            print("You can now receive DMs")
+        elif choice == "5":
+            identification_page()
+        elif choice == "6":
+            # Show the friends list
+            for friend in friends_list:
+                print(f"User{friend}")
+
+            # Add a friend to the list
+            friend_number = input("Enter the friend's number: ")
+            friends_list.append(friend_number)
         else:
             print("Invalid choice")
-
-        # Go back to the main menu
-        choice = input("Enter your choice: ")
 
 def show_posts():
     posts = get_posts()
     for post in posts:
         print(post)
 
-def send_dm():
-    username = input("Enter the username: ")
-    message = input("Enter the message: ")
-    send_dm(username, message)
-
-def profile():
-    print("This is your profile")
-
 if __name__ == "__main__":
     main()
-
