@@ -5,18 +5,27 @@ root.title("Project Indigo (Beta)")
 
 def get_posts():
     posts = []
-    with open("posts.txt", "r") as f:
-        for line in f:
-            posts.append(line.strip())
+    try:
+        with open("posts.txt", "r") as f:
+            for line in f:
+                posts.append(line.strip())
+    except FileNotFoundError:
+        posts = []
     return posts
 
 def post_message(message):
-    with open("posts.txt", "a") as f:
-        f.write(message + "\n")
+    try:
+        with open("posts.txt", "a") as f:
+            f.write(message + "\n")
+    except FileNotFoundError:
+        print("Error: Could not open posts.txt")
 
 def send_dm(username, message):
-    with open("dms.txt", "a") as f:
-        f.write(f"{username}: {message}\n")
+    try:
+        with open("dms.txt", "a") as f:
+            f.write(f"{username}: {message}\n")
+    except FileNotFoundError:
+        print("Error: Could not open dms.txt")
 
 def show_posts():
     posts = get_posts()
