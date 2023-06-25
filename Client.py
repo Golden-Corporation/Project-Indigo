@@ -1,4 +1,3 @@
-
 import os
 import socket
 
@@ -18,39 +17,39 @@ def send_dm(username, message):
         f.write(f"{username}: {message}\n")
 
 def main():
+    print("Welcome to Project Indigo (Beta)")
+
+    # Create a sidebar
+    print("1. Posts")
+    print("2. DMs")
+    print("3. Profile")
+
+    # Get the user's choice
+    choice = input("Enter your choice: ")
+
+    # Handle the user's choice
+    if choice == "1":
+        show_posts()
+    elif choice == "2":
+        send_dm()
+    elif choice == "3":
+        profile()
+    else:
+        print("Invalid choice")
+
+def show_posts():
     posts = get_posts()
     for post in posts:
         print(post)
 
-    while True:
-        message = input("Enter a message: ")
-        if message == "exit":
-            break
-        else:
-            post_message(message)
+def send_dm():
+    username = input("Enter the username: ")
+    message = input("Enter the message: ")
+    send_dm(username, message)
 
-    # Create a socket object
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # Bind the socket to the port
-    host = "localhost"
-    port = 8000
-    sock.bind((host, port))
-
-    # Listen for connections
-    sock.listen(5)
-
-    # Accept a connection
-    connection, address = sock.accept()
-
-    # Receive data from the client
-    data = connection.recv(1024)
-
-    # Print the data
-    print(data.decode())
-
-    # Close the connection
-    connection.close()
+def profile():
+    print("This is your profile")
 
 if __name__ == "__main__":
     main()
+
