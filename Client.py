@@ -1,4 +1,6 @@
+
 import os
+import socket
 
 def get_posts():
     posts = []
@@ -27,6 +29,28 @@ def main():
         else:
             post_message(message)
 
+    # Create a socket object
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Bind the socket to the port
+    host = "localhost"
+    port = 8000
+    sock.bind((host, port))
+
+    # Listen for connections
+    sock.listen(5)
+
+    # Accept a connection
+    connection, address = sock.accept()
+
+    # Receive data from the client
+    data = connection.recv(1024)
+
+    # Print the data
+    print(data.decode())
+
+    # Close the connection
+    connection.close()
+
 if __name__ == "__main__":
     main()
-
