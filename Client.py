@@ -1,39 +1,32 @@
-import socket
-import json
+import os
 
-def handle_request(client_socket):
-    # Receive the request from the client.
-    request = client_socket.recv(1024).decode('utf-8')
+def get_posts():
+    posts = []
+    with open("posts.txt", "r") as f:
+        for line in f:
+            posts.append(line.strip())
+    return posts
 
-    # Parse the request.
-    request_data = json.loads(request)
+def post_message(message):
+    with open("posts.txt", "a") as f:
+        f.write(message + "\n")
 
-    # Handle the request.
-    if request_data['action'] == 'post':
-        # Post a new message.
-        post = request_data['post']
-        save_post(post)
-    elif request_data['action'] == 'get_posts':
-        # Get all the posts.
-        posts = get_posts()
-        client_socket.send(json.dumps(posts).encode('utf-8'))
-    elif request_data['action'] == 'send_dm':
-        # Send a direct message.
-        dm = request_data['dm']
-        send_dm(dm)
+def send_dm(username, message):
+    with open("dms.txt", "a") as f:
+        f.write(f"{username}: {message}\n")
 
 def main():
-    # Create a socket.
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost', 8080))
-    server_socket.listen(10)
+    posts = get_posts()
+    for post in posts:
+        print(post)
 
     while True:
-        # Accept a connection from a client.
-        client_socket, client_address = server_socket.accept()
+        message = input("Enter a message: ")
+        if message == "exit":
+            break
+        else:
+            post_message(message)
 
-        # Handle the request from the client.
-        handle_request(client_socket)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
