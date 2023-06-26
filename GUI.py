@@ -1,42 +1,3 @@
-import random
-import os
-from tkinter import *
-
-def get_posts():
-    posts = []
-    with open("posts.txt", "r") as f:
-        for line in f:
-            posts.append(line.strip())
-    return posts
-
-def post_message(message):
-    with open("posts.txt", "a") as f:
-        f.write(message + "\n")
-
-def send_dm(sender_number, recipient_number, message):
-    if not isinstance(sender_number, int) or not isinstance(recipient_number, int):
-        raise ValueError("The sender_number and recipient_number must be integers")
-
-    with open("dms.txt", "a") as f:
-        f.write(f"{sender_number}: {recipient_number}: {message}\n")
-
-def get_username(number):
-    with open("accounts.txt", "r") as f:
-        for line in f:
-            if number == line.split(":")[0]:
-                return line.split(":")[1]
-    return None
-
-def identification_page():
-    number = generate_number()
-
-    with open("identification.txt", "w") as f:
-        f.write(str(number))
-    print(f"Your identification number is: {number}")
-
-def generate_number():
-    return random.randint(0, 999)
-
 def main():
     root = Tk()
     root.title("Project Indigo")
@@ -91,3 +52,10 @@ def main():
     make_post_button.pack()
 
     send_dm_button = Button(root, text="Send DM", command=send_dm)
+
+    # Run the main loop
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
