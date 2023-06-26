@@ -1,7 +1,7 @@
 import tkinter as Tk
 
 def main():
-    root = Tk()
+    root = Tk.Tk()
     root.title("Project Indigo")
 
     # Create the posts list
@@ -61,4 +61,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
