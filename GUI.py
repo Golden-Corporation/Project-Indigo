@@ -14,6 +14,9 @@ def post_message(message):
         f.write(message + "\n")
 
 def send_dm(sender_number, recipient_number, message):
+    if not isinstance(sender_number, int) or not isinstance(recipient_number, int):
+        raise ValueError("The sender_number and recipient_number must be integers")
+
     with open("dms.txt", "a") as f:
         f.write(f"{sender_number}: {recipient_number}: {message}\n")
 
@@ -88,15 +91,3 @@ def main():
     make_post_button.pack()
 
     send_dm_button = Button(root, text="Send DM", command=send_dm)
-    send_dm_button.pack()
-
-    identification_button = Button(root, text="Identification", command=identification_page)
-    identification_button.pack()
-
-    friends_list_button = Button(root, text="Friends List", command=add_friend)
-    friends_list_button.pack()
-
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
