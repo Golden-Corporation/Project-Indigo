@@ -1,39 +1,66 @@
 import random
 import socket
+import threading
 
-MULTICAST_IP = "224.0.0.1"
-MULTICAST_PORT = 8080
-
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-client_socket.bind(('', MULTICAST_PORT))
-
-client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.INADDR_ANY)
-client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-
-while True:
-    # Get the user's input
+def send_message():
+    # Get the message from the user
     message = input("Enter your message: ")
 
-    # Send the message to the multicast group
+    # Send the message to the server
     client_socket.sendto(message.encode("utf-8"), (MULTICAST_IP, MULTICAST_PORT))
 
+    # Go back to the main menu
+    print("Message sent!")
+
+def receive_message():
     # Receive a message from the server
     data, address = client_socket.recvfrom(1024)
 
     # Print the message
     print(data.decode("utf-8"))
 
-def show_posts():
-    posts = get_posts()
-    for post in posts:
-        # Add the user's number to the post
-        post = f"{post} - User{post.split('-')[0]}"
-        print(post)
+def main():
+    # Create a socket
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    client_socket.bind(('', MULTICAST_PORT))
 
-def send_dm(sender_number, recipient_number, message):
-    with open("dms.txt", "a") as f:
-        f.write(f"{sender_number}: {recipient_number}: {message}\n")
+    # Join the multicast group
+    client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.INADDR_ANY)
+    client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+
+    # Create a thread to receive messages
+    receive_message_thread = threading.Thread(target=receive_message)
+    receive_message_thread.daemon = True
+    receive_message_thread.start()
+
+    # Start the main loop
+    while True:
+        # Print the menu options
+        print("Welcome To Project Indigo")
+        print("1) Make a post")
+        print("2) Send/Receive DM")
+        print("3) See your reference number")
+        print("4) Friends")
+
+        # Get the user's choice
+        choice = input("Enter your choice: ")
+
+        # Do the corresponding action
+        if choice == "1":
+            # Make a post
+            print("Making a post...")
+        elif choice == "2":
+            # Send/Receive DM
+            print("Sending/Receiving DM...")
+        elif choice == "3":
+            # See your reference number
+            print("Your reference number is:")
+        elif choice == "4":
+            # Friends
+            print("Friends...")
+        else:
+            print("Invalid choice!")
 
 if __name__ == "__main__":
     main()
