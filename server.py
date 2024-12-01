@@ -1,65 +1,4 @@
-import socket
-import threading
-import hashlib
-import json
-from cryptography.fernet import Fernet
-import os
-from ascii_magic import AsciiArt
-
-HOST = '0.0.0.0'
-PORT = 8080
-
-CREDENTIALS_FILE = 'credentials.json'
-MESSAGE_HISTORY_FILE = 'message_history.json'
-
-if not os.path.exists('secret.key'):
-    key = Fernet.generate_key()
-    with open('secret.key', 'wb') as key_file:
-        key_file.write(key)
-else:
-    with open('secret.key', 'rb') as key_file:
-        key = key_file.read()
-
-cipher_suite = Fernet(key)
-
-users = {}
-posts = []  # All posts are stored here
-post_history = {}  # Individual user post histories
-
-
-def load_credentials():
-    global users
-    if os.path.exists(CREDENTIALS_FILE):
-        with open(CREDENTIALS_FILE, 'r') as file:
-            encrypted_data = json.load(file)
-            for username, encrypted_password in encrypted_data.items():
-                decrypted_password = cipher_suite.decrypt(encrypted_password.encode()).decode()
-                users[username] = decrypted_password
-
-
-def save_credentials():
-    encrypted_data = {username: cipher_suite.encrypt(password.encode()).decode() for username, password in users.items()}
-    with open(CREDENTIALS_FILE, 'w') as file:
-        json.dump(encrypted_data, file)
-
-
-def load_message_history():
-    global posts, post_history
-    if os.path.exists(MESSAGE_HISTORY_FILE):
-        with open(MESSAGE_HISTORY_FILE, 'r') as file:
-            data = json.load(file)
-            posts = data.get("posts", [])
-            post_history = data.get("post_history", {})
-
-
-def save_message_history():
-    data = {
-        "posts": posts,
-        "post_history": post_history
-    }
-    with open(MESSAGE_HISTORY_FILE, 'w') as file:
-        json.dump(data, file, indent=4)
-
+from ascii_magic import AsciiArt, load_from_file
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -100,10 +39,10 @@ def handle_client(conn, addr):
                     # Expecting format: POST:<content>:<image_path>
                     _, post_content, image_path = msg.split(":", 2)
 
-                    # Attempt to convert the image to ASCII art
+                    # Attempt to convert the image to ASCII art with a smaller resolution
                     ascii_art = ""
                     try:
-                        ascii_art = AsciiArt.from_image(image_path).to_ascii()
+                        ascii_art = AsciiArt.from_image(image_path, columns=50).to_ascii()  # Smaller size
                     except Exception as e:
                         ascii_art = f"Failed to convert image: {str(e)}"
 
@@ -152,23 +91,3 @@ def handle_client(conn, addr):
 
     conn.close()
     print(f"[DISCONNECT] {addr} disconnected.")
-
-
-def start():
-    load_credentials()  # Load users on server start
-    load_message_history()  # Load message history on server start
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen()
-    print(f"[LISTENING] Server is listening on {HOST}:{PORT}")
-
-    while True:
-        conn, addr = server.accept()
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start()
-        print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
-
-
-if __name__ == "__main__":
-    print("[STARTING] Server is starting...")
-    start()
