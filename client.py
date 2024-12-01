@@ -1,78 +1,110 @@
 import socket
-import ascii_magic
-from colorama import init
+import os
+from ascii_magic import AsciiArt
 
-# Initialize colorama
-init(autoreset=True)
+SERVER = "127.0.0.1"  # Change to server's IP if running on a remote machine
+PORT = 8080  # Must match the server's port
 
-# Constants for server connection
-SERVER_ADDRESS = ('192.168.0.157', 8080)  # Change to your server address
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def connect():
-    client.connect(SERVER_ADDRESS)
-    print("Connected to the server.")
+class SocialMediaClient:
+    def __init__(self):
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_address = (SERVER, PORT)
 
-def signup():
-    username = input("Enter username: ")
-    password = input("Enter password: ")
-    client.send(f"SIGNUP:{username}:{password}".encode('utf-8'))
-    print(client.recv(1024).decode('utf-8'))
-
-def login():
-    username = input("Enter username: ")
-    password = input("Enter password: ")
-    client.send(f"LOGIN:{username}:{password}".encode('utf-8'))
-    print(client.recv(1024).decode('utf-8'))
-    return username
-
-def post_content(username):
-    content = input("Enter your text post (or leave empty to skip): ")
-    add_image = input("Do you want to add an image? (y/n): ").lower()
-    ascii_art = ""
-
-    if add_image == "y":
-        image_path = input("Enter the path to your image: ")
+    def connect(self):
         try:
-            # Create ASCII art from the image
-            my_art = ascii_magic.AsciiArt.from_image(image_path)
-            ascii_art = str(my_art)  # Convert ASCII art to a string
-        except Exception as e:
-            print(f"Failed to convert image: {e}")
-            return
+            self.client_socket.connect(self.server_address)
+            print("Connected to the server.")
+        except ConnectionRefusedError:
+            print("Failed to connect to the server. Please ensure the server is running.")
+            exit()
 
-    # Send both text and ASCII art (if present) to the server
-    client.send(f"POST:{content}:{ascii_art}".encode('utf-8'))
-    print(client.recv(1024).decode('utf-8'))
+    def send(self, message):
+        self.client_socket.send(message.encode('utf-8'))
 
-def get_posts():
-    client.send("GET_POSTS".encode('utf-8'))
-    posts = client.recv(4096).decode('utf-8')
-    print("Posts:\n", posts)
+    def receive(self):
+        return self.client_socket.recv(4096).decode('utf-8')
 
-def main():
-    connect()
-    action = input("Do you want to sign up or login? (signup/login): ").strip().lower()
-    
-    if action == "signup":
-        signup()
-    username = login()
+    def signup(self):
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+        self.send(f"SIGNUP:{username}:{password}")
+        response = self.receive()
+        print(response)
 
-    while True:
-        print("\nMenu:\n1. Post content\n2. Get posts\n3. Disconnect")
-        choice = input("Choose an option: ")
-        
-        if choice == '1':
-            post_content(username)
-        elif choice == '2':
-            get_posts()
-        elif choice == '3':
-            client.send("DISCONNECT".encode('utf-8'))
-            break
+    def login(self):
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+        self.send(f"LOGIN:{username}:{password}")
+        response = self.receive()
+        if "successful" in response:
+            print("Login successful!")
+            return True
         else:
-            print("Invalid option. Please try again.")
+            print("Login failed.")
+            return False
 
-    client.close()
+    def post_content(self):
+        text_content = input("Enter your text post (or leave empty to skip): ")
+        add_image = input("Do you want to add an image? (y/n): ").lower()
+        image_path = ""
+
+        if add_image == 'y':
+            image_path = input("Enter the path to your image: ")
+            if not os.path.exists(image_path):
+                print("Invalid image path.")
+                return
+
+        self.send(f"POST:{text_content}:{image_path}")
+        response = self.receive()
+        print(response)
+
+    def get_posts(self):
+        self.send("GET_POSTS")
+        posts = self.receive()
+        print("\nPosts:\n" + posts)
+
+    def get_post_history(self):
+        self.send("GET_HISTORY")
+        history = self.receive()
+        print("\nYour Post History:\n" + history)
+
+    def menu(self):
+        while True:
+            print("\nMenu:")
+            print("1. Post content")
+            print("2. Get posts")
+            print("3. Get post history")
+            print("4. Disconnect")
+            choice = input("Choose an option: ")
+
+            if choice == "1":
+                self.post_content()
+            elif choice == "2":
+                self.get_posts()
+            elif choice == "3":
+                self.get_post_history()
+            elif choice == "4":
+                self.send("DISCONNECT")
+                print("Disconnected from the server.")
+                break
+            else:
+                print("Invalid option.")
+
+    def run(self):
+        self.connect()
+        while True:
+            action = input("Do you want to sign up or login? (signup/login): ").lower()
+            if action == "signup":
+                self.signup()
+            elif action == "login":
+                if self.login():
+                    self.menu()
+                    break
+            else:
+                print("Invalid option. Please enter 'signup' or 'login'.")
+
 
 if __name__ == "__main__":
-    main()
+    client = SocialMediaClient()
+    client.run()
